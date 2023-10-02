@@ -9,7 +9,9 @@
 
 """
 
-import threading
+from multiprocess import Process
+
+from time import time
 
 from src.utils.env_handle import get_env_var
 
@@ -29,29 +31,56 @@ def get_size_of_db(aws_df, db, table):
     return df_dict[key]
 
 
-def loop(db, table, aws_df, aws_comprehend, mode):
-    threads = []
+def seconds_to_hms(total_seconds):
+    hours = int(total_seconds // 3600)
+    total_seconds %= 3600
+    minutes = int(total_seconds // 60)
+    seconds = total_seconds % 60
+    return f"{hours}H:{minutes}M:{int(seconds)}S"
 
-    max_threads_number = get_env_var('MAX_THREAD', 'int')
+
+def get_time_to_go(start_time, max_process_number, table_size, offset):
+    data_processed_per_operation = 39000 * (max_process_number - 1)
+
+    execution_time_of_one_operation = time() - start_time
+
+    data_left_to_be_processed = table_size - offset
+
+    nb_of_operations_to_go = data_left_to_be_processed / data_processed_per_operation
+
+    total_second = nb_of_operations_to_go * execution_time_of_one_operation
+
+    return seconds_to_hms(total_second)
+
+
+def loop(db, table, aws_df, aws_comprehend, mode):
+    procs = []
+
+    max_process_number = get_env_var('MAX_THREAD', 'int')
 
     table_size = get_size_of_db(aws_df, 'csv-parsed', 'dataset2')
 
     offset = 0
 
+    start_time = time()
+
+    time_to_go = "Unknow"
+
     while offset + 39000 < table_size:
-        print(f'\rNumbers of Threads in use: {threading.active_count()} - {offset}/{table_size}', flush=True, end='')
+        print(f'\rTime remaining: ~{time_to_go}', flush=True, end='')
 
-        if threading.active_count() == max_threads_number:
-            for t in threads:
-                t.join()
+        if len(procs) == max_process_number:
+            for proc in procs:
+                proc.join()
 
-            threads = []
+            time_to_go = get_time_to_go(start_time, max_process_number, table_size, offset)
+            procs = []
 
-        t = threading.Thread(target=thread_process, args=(offset, aws_df, aws_comprehend, db, table, mode))
+        proc = Process(target=thread_process, args=(offset, aws_df, aws_comprehend, db, table, mode))
 
-        t.start()
+        proc.start()
 
-        threads.append(t)
+        procs.append(proc)
 
         offset += 39000
 

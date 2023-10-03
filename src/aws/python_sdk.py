@@ -9,7 +9,7 @@
 
 """
 
-from time import time
+from time import time, sleep
 
 from boto3 import Session
 
@@ -45,12 +45,21 @@ class AwsDf:
         return wr.athena.read_sql_query(query, table, boto3_session=self.aws)
 
     @verify_session(renew_session=__create_session)
-    def upload_to_s3(self, df, bucket, name, ext="csv"):
-        bucket_path = f"s3://{bucket}/{name}.{ext}"
+    def upload_to_s3(self, df, bucket, name):
+        bucket_path = f"s3://{bucket}/{name}.csv"
 
-        if type == "csv":
-            return wr.s3.to_csv(df, index=False, path=bucket_path, boto3_session=self.aws)
-        else:
-            return wr.s3.to_parquet(df, index=False, path=bucket_path, boto3_session=self.aws)
+        response = {}
+
+        while 'paths' not in response or len(response['paths']) == 0:
+            if response != {}:
+                sleep(2 * 60)
+
+            response = wr.s3.to_csv(df, index=False, path=bucket_path, boto3_session=self.aws)
+
+        return response
+
+
+
+
 
 

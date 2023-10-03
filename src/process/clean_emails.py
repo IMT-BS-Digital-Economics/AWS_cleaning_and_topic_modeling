@@ -9,6 +9,8 @@
 
 """
 
+from warnings import catch_warnings, simplefilter
+
 from re import sub
 
 from bs4 import BeautifulSoup
@@ -22,17 +24,20 @@ def clean_text(text):
 
 
 def clean_row(row):
-    text = BeautifulSoup(str(row['body']), 'lxml').get_text().replace('\n', ' ')
+    with catch_warnings():
+        simplefilter("ignore")
 
-    text = sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", text)
+        text = BeautifulSoup(str(row['body']), 'lxml').get_text().replace('\n', ' ')
 
-    text = text.strip()
+        text = sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", text)
 
-    text = "".join(['\n' + char if char.isupper() else char for char in text])
+        text = text.strip()
 
-    text = text.lower()
+        text = "".join(['\n' + char if char.isupper() else char for char in text])
 
-    return clean_text(text)
+        text = text.lower()
+
+        return clean_text(text)
 
 
 def clean_db(df):

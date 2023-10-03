@@ -13,10 +13,6 @@ from re import sub
 
 from bs4 import BeautifulSoup
 
-from nltk.corpus import stopwords
-
-from src.utils.env_handle import get_env_var
-
 
 def clean_text(text):
     for element in [u'\xa0', '\n', '\r']:
@@ -26,8 +22,6 @@ def clean_text(text):
 
 
 def clean_row(row):
-    stop = stopwords.words("english")
-
     text = BeautifulSoup(str(row['body']), 'lxml').get_text().replace('\n', ' ')
 
     text = sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", text)
@@ -37,8 +31,6 @@ def clean_row(row):
     text = "".join(['\n' + char if char.isupper() else char for char in text])
 
     text = text.lower()
-
-    text = " ".join([word for word in text.split() if word not in stop])
 
     return clean_text(text)
 
@@ -57,7 +49,7 @@ def clean_db(df):
     return df
 
 
-def clean_and_upload_df(db, table, offset, aws_df, mode, process_name):
+def clean_df(db, table, offset, aws_df):
     limit = 39000
 
     # Get Df from AWS Athena
@@ -67,10 +59,4 @@ def clean_and_upload_df(db, table, offset, aws_df, mode, process_name):
 
     df = clean_db(df)
 
-    # Save to S3 Bucket -> Get URI
-
-    if mode == "topic analysis":
-        return aws_df.upload_to_s3(df, get_env_var('AWS_TMP_BUCKET', 'str'), process_name)
-    else:
-        aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), process_name)
-        return None
+    return df

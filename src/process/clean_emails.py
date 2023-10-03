@@ -49,8 +49,6 @@ def clean_db(df):
 
     df['cleaned_text'] = df.apply(lambda row: clean_row(row), axis=1)
 
-    clean_row(df.loc[0])
-
     return df
 
 

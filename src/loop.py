@@ -53,14 +53,12 @@ def get_time_to_go(start_time, max_process_number, table_size, offset):
     return seconds_to_hms(total_second)
 
 
-def loop(db, table, aws_df, aws_comprehend, mode):
+def loop(db, table, aws_df, aws_comprehend, mode, offset=0):
     procs = []
 
     max_process_number = get_env_var('MAX_THREAD', 'int')
 
     table_size = get_size_of_db(aws_df, 'csv-parsed', 'dataset2')
-
-    offset = 0
 
     start_time = time()
 

@@ -22,7 +22,9 @@ def handle_args():
         description="Select which Database and Table for your topic modeling process"
     )
 
-    parser.add_argument("--mode", dest="mode", action="store", choices={'cleaning', 'topic_analysis'}, required=True, help="-Cleaning: The email in the given db will be just cleaned and send as parquet on a S3 bucket\n-Topic Analysis: The email will be cleaned and then analyzed using topic modeling")
+    parser.add_argument("--mode", type=str, dest="mode", action="store", choices={'cleaning', 'topic_analysis'}, required=True, help="-Cleaning: The email in the given db will be just cleaned and send as parquet on a S3 bucket\n-Topic Analysis: The email will be cleaned and then analyzed using topic modeling")
+
+    parser.add_argument('--offset', type=int, dest="offset", action="store", help="If you want to start at a given offset, please note that it's better to start at a 39000")
 
     parser.add_argument("database", type=str, help='a string: specify the database to use to access data based on AWS '
                                                    'Athena')
@@ -36,12 +38,17 @@ def main():
 
     aws_df = AwsDf()
 
+    offset = 0
+
     if args.mode == "topic analysis":
         aws_comprehend = AwsComprehend()
     else:
         aws_comprehend = None
 
-    loop(args.database, args.table, aws_df, aws_comprehend, args.mode)
+    if args.offset:
+        offset = args.offset
+
+    loop(args.database, args.table, aws_df, aws_comprehend, args.mode, offset=offset)
 
 
 if __name__ == "__main__":

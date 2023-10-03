@@ -5,3 +5,5 @@
 
 .idea
 pyvenv.cfg
+
+/logs/.txt

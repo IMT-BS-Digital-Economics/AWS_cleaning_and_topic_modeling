@@ -11,7 +11,7 @@
 
 from time import time, sleep
 
-from boto3 import Session
+from boto3 import Session, client
 
 import awswrangler as wr
 
@@ -38,7 +38,7 @@ class AwsDf:
         if not wr.s3.does_object_exist(bucket_link, boto3_session=self.aws):
             raise Exception(f'No bucket found with this path: {bucket_link}')
 
-        return wr.s3.read_parquet(path=bucket_link, boto3_session=self.aws)
+        return wr.s3.read_csv(path=bucket_link, boto3_session=self.aws)
 
     @verify_session(renew_session=__create_session)
     def get_df_from_athena(self, query, table):
@@ -46,7 +46,7 @@ class AwsDf:
 
     @verify_session(renew_session=__create_session)
     def upload_to_s3(self, df, bucket, name):
-        bucket_path = f"s3://{bucket}/{name}.csv"
+        bucket_path = f"s3://{bucket}/{name}"
 
         response = {}
 
@@ -54,7 +54,7 @@ class AwsDf:
             if response != {}:
                 sleep(2 * 60)
 
-            response = wr.s3.to_csv(df, index=False, path=bucket_path, boto3_session=self.aws)
+            response = wr.s3.to_parquet(df, index=False, path=bucket_path, boto3_session=self.aws)
 
         return response
 

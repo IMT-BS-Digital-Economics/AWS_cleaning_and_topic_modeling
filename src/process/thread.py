@@ -9,7 +9,9 @@
 
 """
 
-from time import time, sleep
+from traceback import format_exc
+
+from time import time
 
 from src.process.clean_emails import clean_df
 from src.process.topic_modeling import run_topic_modeling
@@ -27,13 +29,21 @@ def thread_process(offset, aws_df, aws_comprehend, db, table, mode):
 
     write_thread_logs(process_name, "Now, we will clean emails")
 
-    df = clean_df(db, table, offset, aws_df)
+    try:
+        df = clean_df(db, table, offset, aws_df)
+    except Exception as e:
+        write_thread_logs(process_name, f"Exception raised during emails cleaning: {format_exc()}")
+        return
 
     write_thread_logs(process_name, f"Emails are cleaned, it took {int(time() - start_time)}s !")
 
     upload_time = time()
 
-    upload_response = upload(aws_df, df, mode, process_name)
+    try:
+        upload_response = upload(aws_df, df, mode, process_name)
+    except Exception as e:
+        write_thread_logs(process_name, f"Exception raised during upload of cleaned emails: {format_exc()}")
+        return
 
     write_thread_logs(process_name, f"Df has been uploaded in {int(time() - upload_time)}s ! AWS response: {upload_response}")
 

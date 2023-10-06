@@ -41,8 +41,8 @@ class AwsDf:
         return wr.s3.read_csv(path=bucket_link, boto3_session=self.aws)
 
     @verify_session(renew_session=__create_session)
-    def get_df_from_athena(self, query, table):
-        return wr.athena.read_sql_query(query, table, boto3_session=self.aws)
+    def get_df_from_athena(self, query, db):
+        return wr.athena.read_sql_query(query, db, boto3_session=self.aws)
 
     @verify_session(renew_session=__create_session)
     def upload_to_s3(self, df, bucket, name):

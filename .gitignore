@@ -6,4 +6,5 @@
 .idea
 pyvenv.cfg
 
-/logs/.txt
+*.txt
+*.csv

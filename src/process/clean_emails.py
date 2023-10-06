@@ -57,7 +57,7 @@ def clean_df(db, table, offset, aws_df):
 
     # Get Df from AWS Athena
     df = aws_df.get_df_from_athena(f'SELECT "unique_id", "body" FROM "{db}"."{table}" OFFSET {offset} LIMIT {limit};',
-                                   'csv-parsed')
+                                   db)
     # Clean Df
 
     df = clean_db(df)

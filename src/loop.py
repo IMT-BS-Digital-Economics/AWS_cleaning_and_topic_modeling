@@ -18,19 +18,6 @@ from src.utils.env_handle import get_env_var
 from src.process.thread import thread_process
 
 
-def get_size_of_db(aws_df, db, table):
-    df_size = aws_df.get_df_from_athena(f'SELECT COUNT("body") as column_count FROM {table};', db)
-
-    if not 'column_count' in df_size.columns:
-        raise Exception('Failed to get column count')
-
-    df_dict = df_size.to_dict()['column_count']
-
-    key = list(df_dict.keys())[0]
-
-    return df_dict[key]
-
-
 def seconds_to_hms(total_seconds):
     hours = int(total_seconds // 3600)
     total_seconds %= 3600
@@ -40,7 +27,7 @@ def seconds_to_hms(total_seconds):
 
 
 def get_time_to_go(start_time, max_process_number, table_size, offset):
-    data_processed_per_operation = 39000 * (max_process_number - 1)
+    data_processed_per_operation = (max_process_number - 1)
 
     execution_time_of_one_operation = time() - start_time
 
@@ -53,33 +40,32 @@ def get_time_to_go(start_time, max_process_number, table_size, offset):
     return seconds_to_hms(total_second)
 
 
-def loop(db, table, aws_df, aws_comprehend, mode, offset=0):
+def loop(aws_df, aws_comprehend, mode, bucket_uri):
     procs = []
 
     max_process_number = get_env_var('MAX_THREAD', 'int')
-
-    table_size = get_size_of_db(aws_df, 'csv-parsed', 'dataset2')
 
     start_time = time()
 
     time_to_go = "Unknow"
 
-    while offset + 39000 < table_size:
+    files_in_bucket = aws_df.get_s3_bucket_obj_list(bucket_uri)
+
+    for idx, file_uri in enumerate(files_in_bucket):
         print(f'\rTime remaining: ~{time_to_go}', flush=True, end='')
 
         if len(procs) == max_process_number:
             for proc in procs:
                 proc.join()
 
-            time_to_go = get_time_to_go(start_time, max_process_number, table_size, offset)
+            time_to_go = get_time_to_go(start_time, max_process_number, len(files_in_bucket), idx)
+
             procs = []
 
-        proc = Process(target=thread_process, args=(offset, aws_df, aws_comprehend, db, table, mode))
+        proc = Process(target=thread_process, args=(idx, aws_df, aws_comprehend, file_uri, mode))
 
         proc.start()
 
         procs.append(proc)
 
-        offset += 39000
-
-    print("Done")
+    print('\nDone :)')

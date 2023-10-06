@@ -38,11 +38,14 @@ class AwsDf:
         if not wr.s3.does_object_exist(bucket_link, boto3_session=self.aws):
             raise Exception(f'No bucket found with this path: {bucket_link}')
 
-        return wr.s3.read_csv(path=bucket_link, boto3_session=self.aws)
+        return wr.s3.read_parquet(path=bucket_link, boto3_session=self.aws)
+
+    def get_s3_bucket_obj_list(self, bucket_link):
+        return wr.s3.list_objects(bucket_link, boto3_session=self.aws)
 
     @verify_session(renew_session=__create_session)
     def get_df_from_athena(self, query, db):
-        return wr.athena.read_sql_query(query, db, boto3_session=self.aws)
+        return wr.athena.read_sql_query(query, db, boto3_session=self.aws, ctas_approach=False)
 
     @verify_session(renew_session=__create_session)
     def upload_to_s3(self, df, bucket, name):

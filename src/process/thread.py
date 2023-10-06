@@ -20,17 +20,17 @@ from src.process.upload import upload
 from src.utils.logs import write_thread_logs
 
 
-def thread_process(offset, aws_df, aws_comprehend, db, table, mode):
+def thread_process(index, aws_df, aws_comprehend, file_uri, mode):
     start_time = time()
 
-    process_name = f"df_{db}_{table}_{offset}"
+    process_name = f"df_{file_uri.replace('/', '')}_{index}"
 
     write_thread_logs(process_name, "Process is starting")
 
     write_thread_logs(process_name, "Now, we will clean emails")
 
     try:
-        df = clean_df(db, table, offset, aws_df)
+        df = clean_df(file_uri, aws_df)
     except Exception as e:
         write_thread_logs(process_name, f"Exception raised during emails cleaning: {format_exc()}")
         return

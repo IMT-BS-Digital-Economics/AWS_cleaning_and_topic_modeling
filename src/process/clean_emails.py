@@ -52,14 +52,7 @@ def clean_db(df):
     return df
 
 
-def clean_df(db, table, offset, aws_df):
-    limit = 39000
+def clean_df(file_uri, aws_df):
+    df = aws_df.get_bucket_as_df(file_uri)
 
-    # Get Df from AWS Athena
-    df = aws_df.get_df_from_athena(f'SELECT "unique_id", "body" FROM "{db}"."{table}" OFFSET {offset} LIMIT {limit};',
-                                   db)
-    # Clean Df
-
-    df = clean_db(df)
-
-    return df
+    return clean_db(df)

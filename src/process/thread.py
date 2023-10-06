@@ -9,6 +9,8 @@
 
 """
 
+from os import path
+
 from traceback import format_exc
 
 from time import time
@@ -20,10 +22,16 @@ from src.process.upload import upload
 from src.utils.logs import write_thread_logs
 
 
-def thread_process(index, aws_df, aws_comprehend, file_uri, mode):
+def get_process_name(file_uri):
+    process_name = path.basename(file_uri)
+
+    return path.splitext(process_name)[0].replace('.', '-')
+
+
+def thread_process(aws_df, aws_comprehend, file_uri, mode):
     start_time = time()
 
-    process_name = f"df_{file_uri.replace('/', '')}_{index}"
+    process_name = f"df-{get_process_name(file_uri)}"
 
     write_thread_logs(process_name, "Process is starting")
 

@@ -64,6 +64,6 @@ def analysis_process(file_uri, aws_comprehend, aws_df, process_name):
     if 'paths' not in upload_response or not len(upload_response['paths']) > 0:
         return None
 
-    file_uri = upload_response['paths'][0]
+    modeling_file_uri = upload_response['paths'][0]
 
-    return {'input_uri': file_uri, 'output_uri': run_topic_modeling(file_uri, aws_comprehend, process_name), 'output_bucket': bucket}
+    return {'input_uri': file_uri, 'output_uri': run_topic_modeling(modeling_file_uri, aws_comprehend, process_name), 'bucket_uri': bucket}

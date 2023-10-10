@@ -44,7 +44,7 @@ class AwsComprehend:
         data_access_role_arn = f"{self.iam_user}:{self.iam_role}"
         number_of_topics = get_env_var('NUMBER_OF_TOPIC', 'int')
 
-        input_data_config = {"S3Uri": f"{input_path}", "InputFormat": "ONE_DOC_PER_FILE"}
+        input_data_config = {"S3Uri": f"{input_path}", "InputFormat": "ONE_DOC_PER_LINE"}
         output_data_config = {"S3Uri": f"s3://{output_path}"}
 
         job = self.aws.start_topics_detection_job(

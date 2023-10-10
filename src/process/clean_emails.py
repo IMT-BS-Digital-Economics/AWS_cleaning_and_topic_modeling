@@ -9,11 +9,18 @@
 
 """
 
+from time import time
+
+from traceback import format_exc
+
 from warnings import catch_warnings, simplefilter
 
 from re import sub
 
 from bs4 import BeautifulSoup
+
+from src.utils.env_handle import get_env_var
+from src.utils.logs import write_thread_logs
 
 
 def clean_text(text):
@@ -56,3 +63,29 @@ def clean_df(file_uri, aws_df):
     df = aws_df.get_bucket_as_df(file_uri)
 
     return clean_db(df)
+
+
+def clean_process(file_uri, aws_df, process_name, start_time):
+    try:
+        df = clean_df(file_uri, aws_df)
+    except Exception as e:
+        write_thread_logs(process_name, f"Exception raised during emails cleaning: {format_exc()}")
+        return
+
+    write_thread_logs(process_name, f"Emails are cleaned, it took {int(time() - start_time)}s !")
+
+    upload_time = time()
+
+    try:
+        upload_response = aws_df.upload_to_s3(df, get_env_var("AWS_STORAGE_BUCKET", "str"), process_name)
+    except Exception as e:
+        write_thread_logs(process_name, f"Exception raised during upload of cleaned emails: {format_exc()}")
+        return
+
+    if 'paths' not in upload_response:
+        write_thread_logs(process_name, 'No path found to use as input for AWS comprehend')
+        return None
+
+    write_thread_logs(process_name, f"Df has been uploaded in {int(time() - upload_time)}s ! AWS response: {upload_response}")
+
+    return upload_response.paths[0]

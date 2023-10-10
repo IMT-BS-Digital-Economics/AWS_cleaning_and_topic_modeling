@@ -15,7 +15,7 @@ from time import time
 
 from src.utils.env_handle import get_env_var
 
-from src.process.thread import thread_process
+from src.thread import thread_process
 
 
 def seconds_to_hms(total_seconds):

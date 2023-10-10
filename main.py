@@ -22,10 +22,10 @@ def handle_args():
         description="Select which Database and Table for your topic modeling process"
     )
 
-    parser.add_argument("--mode", type=str, dest="mode", action="store", choices={'cleaning', 'topic_analysis'}, required=True, help="-Cleaning: The email in the given db will be just cleaned and send as parquet on a S3 bucket\n-Topic Analysis: The email will be cleaned and then analyzed using topic modeling")
+    parser.add_argument("--mode", type=str, dest="mode", action="store", choices={'cleaning', 'topic_analysis', 'both'}, required=True, help="-Cleaning: The email in the given db will be just cleaned and send as parquet on a S3 bucket\n-Topic Analysis: The email will be cleaned and then analyzed using topic modeling")
 
     parser.add_argument("bucket_uri", type=str, help="Provide the bucket URI that contains each parquet files you "
-                                                     "want to clean and use for topic analysis")
+                                                     "want to clean and/or use for topic analysis")
 
     return parser.parse_args()
 
@@ -35,7 +35,7 @@ def main():
 
     aws_df = AwsDf()
 
-    if args.mode == "topic analysis":
+    if args.mode == "topic_analysis" or args.mode == "both":
         aws_comprehend = AwsComprehend()
     else:
         aws_comprehend = None

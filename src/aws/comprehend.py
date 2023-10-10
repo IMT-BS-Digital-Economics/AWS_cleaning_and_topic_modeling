@@ -13,8 +13,6 @@ from time import time
 
 from boto3 import client
 
-from json import dumps
-
 from src.utils.env_handle import get_env_var
 
 from src.decorators.session_decorator import verify_session
@@ -55,7 +53,7 @@ class AwsComprehend:
             JobName=job_name
         )
 
-        self.jobs[job_name] = dumps(job)
+        self.jobs[job_name] = job
 
     @verify_session(renew_session=__create_client)
     def get_job_progress(self, job_name):

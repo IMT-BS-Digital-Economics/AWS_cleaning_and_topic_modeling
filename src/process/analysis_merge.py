@@ -45,6 +45,8 @@ def download_results(process_name, output, aws_df):
 
     results = {'terms': read_csv(f'{work_path}/{terms_filename}'), 'topics': read_csv(f'{work_path}/{topics_filename}')}
 
+    system(f"rm -rf {work_path}")
+
     return results
 
 
@@ -78,5 +80,5 @@ def merge_process(output, process_name, aws_df):
 
     df = df[['unique_id', 'cleaned_text', 'keywords']]
 
-    aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET'), f"{process_name}_analytics")
+    aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}_analytics")
 

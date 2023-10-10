@@ -39,8 +39,8 @@ def thread_process(aws_df, aws_comprehend, file_uri, mode):
         file_uri = clean_process(file_uri, aws_df, process_name, start_time)
 
     if mode == "topic_analysis" or mode == "both":
-        output_uri = analysis_process(file_uri, aws_comprehend, aws_df, process_name)
+        output = analysis_process(file_uri, aws_comprehend, aws_df, process_name)
 
-        merge_process(file_uri, output_uri, process_name, aws_df)
+        merge_process(output, process_name, aws_df)
 
     write_thread_logs(process_name, f"process has been finished in {int(time() - start_time)}s")

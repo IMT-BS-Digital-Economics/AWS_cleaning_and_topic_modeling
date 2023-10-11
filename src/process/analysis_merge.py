@@ -59,11 +59,17 @@ def get_analysis_df(process_name, output, aws_df):
     df_topics = results['topics']
     df_terms = results['terms']
 
-    df_topics['keywords'] = df_topics.apply(lambda row: list(df_terms[df_terms['topic'] == row['topic']]['term']), axis=1)
+    df_topics = df_topics.shift(-1).loc[0:999]
+
+    df_topics['keywords'] = df_topics.apply(
+        lambda row: list(df_terms[df_terms['topic'] == row['topic']]['term']) + [f"proportion: {row['proportion']}"],
+        axis=1)
 
     df_topics = df_topics.groupby('docname', as_index=False).agg({'keywords': list})
 
-    df_topics['keywords'] = df_topics.apply(lambda row: [item for sublist in row['keywords'] for item in sublist], axis=1)
+    df_topics['lines'] = df_topics.apply(lambda row: row['docname'].split(':')[1], axis=1).astype(int)
+
+    df_topics = df_topics.sort_values('lines').reset_index(drop=True)
 
     return df_topics
 

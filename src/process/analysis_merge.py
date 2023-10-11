@@ -59,7 +59,7 @@ def get_analysis_df(process_name, output, aws_df):
     df_topics = results['topics']
     df_terms = results['terms']
 
-    df_topics = df_topics.shift(-1).loc[0:999]
+    df_topics = df_topics.shift(-1)
 
     df_topics['keywords'] = df_topics.apply(
         lambda row: list(df_terms[df_terms['topic'] == row['topic']]['term']) + [f"proportion: {row['proportion']}"],
@@ -75,6 +75,9 @@ def get_analysis_df(process_name, output, aws_df):
 
 
 def merge_process(output, process_name, aws_df):
+    if output is None:
+        return
+
     df = aws_df.get_bucket_as_df(output['input_uri'])
 
     if df is None:

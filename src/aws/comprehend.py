@@ -18,6 +18,19 @@ from src.utils.env_handle import get_env_var
 from src.decorators.session_decorator import verify_session
 
 
+def get_output_from_aws_comprehend_status(job_id, aws_comprehend, file_uri):
+    bucket = get_env_var("AWS_RESULT_BUCKET", "str")
+
+    response = aws_comprehend.get_job_progress('', job_id=job_id)
+
+    properties = 'TopicsDetectionJobProperties'
+
+    if properties in response and 'OutputDataConfig' in response[properties] and 'S3Uri' in response[properties]['OutputDataConfig']:
+        return {"input_uri": file_uri, "output_uri": response[properties]['OutputDataConfig']['S3Uri'], 'bucket_uri': bucket}
+
+    return None
+
+
 class AwsComprehend:
     def __create_client(self):
         return client(
@@ -56,8 +69,8 @@ class AwsComprehend:
         self.jobs[job_name] = job
 
     @verify_session(renew_session=__create_client)
-    def get_job_progress(self, job_name):
-        return self.aws.describe_topics_detection_job(JobId=self.jobs[job_name]['JobId'])
+    def get_job_progress(self, job_name, job_id=None):
+        return self.aws.describe_topics_detection_job(JobId=self.jobs[job_name]['JobId'] if job_id is None else job_id)
 
     @verify_session(renew_session=__create_client)
     def get_job_results(self, job_name):

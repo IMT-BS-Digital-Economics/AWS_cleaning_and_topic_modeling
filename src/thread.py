@@ -13,6 +13,7 @@ from os import path
 
 from time import time
 
+from src.aws.comprehend import get_output_from_aws_comprehend_status
 from src.process.analysis_merge import merge_process
 from src.process.clean_emails import clean_process
 from src.process.topic_modeling import analysis_process
@@ -26,20 +27,26 @@ def get_process_name(file_uri):
     return path.splitext(process_name)[0].replace('.', '-')
 
 
-def thread_process(aws_df, aws_comprehend, file_uri, mode):
+def thread_process(aws_df, aws_comprehend, file_uri, mode, job_id=None):
     start_time = time()
 
     process_name = f"df-{get_process_name(file_uri)}"
 
     write_thread_logs(process_name, "Process is starting")
 
-    write_thread_logs(process_name, "Now, we will clean emails")
+    output = None
 
-    if mode == "cleaning" or mode == "both":
+    if mode == "cleaning" or mode == "all":
+        write_thread_logs(process_name, "Now, we will clean emails")
+
         file_uri = clean_process(file_uri, aws_df, process_name, start_time)
 
-    if mode == "topic_analysis" or mode == "both":
+    if mode == "topic_analysis" or mode == "all":
         output = analysis_process(file_uri, aws_comprehend, aws_df, process_name)
+
+    if mode == "merging" or mode == "all" or mode == "topic_analysis":
+        if output is None and job_id is not None:
+            output = get_output_from_aws_comprehend_status(job_id, aws_comprehend, file_uri)
 
         merge_process(output, process_name, aws_df)
 

@@ -9,25 +9,13 @@
 
 """
 
-from argparse import ArgumentParser
-
 from src.aws.comprehend import AwsComprehend
 from src.aws.python_sdk import AwsDf
 
 from src.loop import loop
+from src.thread import thread_process
 
-
-def handle_args():
-    parser = ArgumentParser(
-        description="Select which Database and Table for your topic modeling process"
-    )
-
-    parser.add_argument("--mode", type=str, dest="mode", action="store", choices={'cleaning', 'topic_analysis', 'both'}, required=True, help="-Cleaning: The email in the given db will be just cleaned and send as parquet on a S3 bucket\n-Topic Analysis: The email will be cleaned and then analyzed using topic modeling")
-
-    parser.add_argument("bucket_uri", type=str, help="Provide the bucket URI that contains each parquet files you "
-                                                     "want to clean and/or use for topic analysis")
-
-    return parser.parse_args()
+from src.utils.args import handle_args
 
 
 def main():
@@ -35,12 +23,16 @@ def main():
 
     aws_df = AwsDf()
 
-    if args.mode == "topic_analysis" or args.mode == "both":
-        aws_comprehend = AwsComprehend()
-    else:
-        aws_comprehend = None
+    aws_comprehend = None
 
-    loop(aws_df, aws_comprehend, args.mode, args.bucket_uri)
+    if args.mode == "topic_analysis" or args.mode == "all" or args.mode == "merging":
+        aws_comprehend = AwsComprehend()
+
+    if args.bucket_uri is not None:
+        loop(aws_df, aws_comprehend, args.mode, args['bucket_uri'])
+
+    if args.file_uri is not None:
+        thread_process(aws_df, aws_comprehend, args.file_uri, args.mode, job_id=args.job_id if args.mode == "merging" else None)
 
 
 if __name__ == "__main__":

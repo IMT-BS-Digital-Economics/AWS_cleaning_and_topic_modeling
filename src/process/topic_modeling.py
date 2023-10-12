@@ -45,7 +45,7 @@ def run_topic_modeling(file_uri, aws_comprehend, process_name):
 
 
 def analysis_process(file_uri, aws_comprehend, aws_df, process_name):
-    bucket = get_env_var("AWS_TMP_BUCKET", "str")
+    bucket = get_env_var("AWS_RESULT_BUCKET", "str")
 
     if not file_uri:
         return

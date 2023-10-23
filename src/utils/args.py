@@ -29,11 +29,11 @@ def create_args():
                              "Comprehend Job and a fileUri of the cleaned parquet file that was used to launch the job "
                              "or All: It will run through each steps")
 
-    parser.add_argument('--bucket_uri', type=str, dest="bucket_uri", action="store",
+    parser.add_argument('--bucket-uri', type=str, dest="bucket_uri", action="store",
                         help="Provide the bucket URI if you want to treat with a whole "
                              "bucket content")
 
-    parser.add_argument('--file_uri', type=str, dest="file_uri", action="store",
+    parser.add_argument('--file-uri', type=str, dest="file_uri", action="store",
                         help="Provide the file URI if you want to treat only one document")
 
     parser.add_argument('--job-id', type=str, dest="job_id", action="store", help="Only in merging mode you need to "

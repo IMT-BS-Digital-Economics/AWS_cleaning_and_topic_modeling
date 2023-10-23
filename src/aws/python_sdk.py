@@ -11,6 +11,8 @@
 
 from time import time, sleep
 
+from pyarrow.lib import ArrowInvalid
+
 from boto3 import Session, client
 
 import awswrangler as wr
@@ -38,7 +40,11 @@ class AwsDf:
         if not wr.s3.does_object_exist(bucket_link, boto3_session=self.aws_session):
             raise Exception(f'No bucket found with this path: {bucket_link}')
 
-        return wr.s3.read_parquet(path=bucket_link, boto3_session=self.aws_session)
+        try:
+            return wr.s3.read_parquet(path=bucket_link, boto3_session=self.aws_session)
+        except ArrowInvalid:
+            return wr.s3.read_csv(path=bucket_link, boto3_session=self.aws_session)
+
 
     def get_s3_bucket_obj_list(self, bucket_link):
         return wr.s3.list_objects(bucket_link, boto3_session=self.aws_session)

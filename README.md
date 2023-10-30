@@ -41,6 +41,10 @@ NUMBER_OF_TOPIC=(Between 10 & 100 according to AWS Topic Modeling documentation)
 
 MAX_THREAD=(Number of threads to be used by the algo, depend of the machine capacity)
 
+# CSV INPUT
+
+BODY_VAR = Name of the column that contain the body of the emaik inside CSV files used as input
+
 ```
 
 ## Start the project

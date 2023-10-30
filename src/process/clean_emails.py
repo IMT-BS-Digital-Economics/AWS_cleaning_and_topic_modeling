@@ -52,7 +52,7 @@ def clean_db(df):
         raise Exception(f"No df succeed")
 
     if get_env_var("BODY_VAR", 'str') not in df.columns:
-        raise Exception(f"Please make sure you have a {get_env_var('BODY_VAR', 'str')} column in your df")
+        raise Exception(f"Please make sure you have a {get_env_var('BODY_VAR', 'str')} column in your df: {df.columns}")
 
     df['cleaned_text'] = df.apply(lambda row: clean_row(row), axis=1)
 
@@ -88,4 +88,4 @@ def clean_process(file_uri, aws_df, process_name, start_time):
 
     write_thread_logs(process_name, f"Df has been uploaded in {int(time() - upload_time)}s ! AWS response: {upload_response}")
 
-    return upload_response.paths[0]
+    return upload_response['paths'][0]

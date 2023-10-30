@@ -91,6 +91,8 @@ def get_analysis_df(process_name, output, aws_df):
 
 
 def merge_process(output, process_name, aws_df):
+    process_dir = 'default'
+
     if output is None:
         return
 
@@ -108,8 +110,13 @@ def merge_process(output, process_name, aws_df):
 
     df.drop(['docname', 'lines', 'topic', 'proportion'], axis=1, inplace=True)
 
-    aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}/{process_name}_analytics/df_{process_name}_analytics")
-    aws_df.upload_to_s3(df_terms_cpy, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}/{process_name}_all_terms/df_{process_name}_all_terms")
-    aws_df.upload_to_s3(df_terms, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}/{process_name}_terms_weight/df_{process_name}_terms_weight")
+    if '-idx-' in process_name:
+        process_dir = process_name[:process_name.find('-idx-')]
+    else:
+        process_dir = process_name
+
+    aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_dir}/{process_dir}_analytics/df_{process_name}_analytics")
+    aws_df.upload_to_s3(df_terms_cpy, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_dir}/{process_dir}_all_terms/df_{process_name}_all_terms")
+    aws_df.upload_to_s3(df_terms, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_dir}/{process_dir}_terms_weight/df_{process_name}_terms_weight")
 
 

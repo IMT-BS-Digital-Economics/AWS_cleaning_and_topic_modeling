@@ -62,7 +62,7 @@ def loop(aws_df, aws_comprehend, mode, bucket_uri, name):
 
             procs = []
 
-        proc = Process(target=thread_process, args=(aws_df, aws_comprehend, file_uri, mode, f'{name}-{idx}'))
+        proc = Process(target=thread_process, args=(aws_df, aws_comprehend, file_uri, mode, f'{name}-idx-{idx}'))
 
         proc.start()
 

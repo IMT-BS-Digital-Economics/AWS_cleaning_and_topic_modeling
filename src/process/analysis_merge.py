@@ -52,7 +52,7 @@ def download_results(process_name, output, aws_df):
 
 def set_proportion(row, topic):
     try:
-        index = row['topic'].index(topic)
+        index = row['topic'].index(float(topic.replace('Topic ', '')))
     except ValueError:
         return 0
 
@@ -70,7 +70,9 @@ def get_analysis_df(process_name, output, aws_df):
 
     df_topics = df_topics.shift(-1)
 
-    topic_list = df_terms.drop_duplicates(['topic'])['topic'].astype(int).tolist()
+    df_terms['topic'] = df_terms.apply(lambda row: 'Topic ' + str(row['topic']), axis=1)
+
+    topic_list = df_terms.drop_duplicates(['topic'])['topic'].astype(str).tolist()
 
     df_terms_cpy = df_terms.groupby('topic', as_index=False).agg({'term': list, 'weight': list})
 
@@ -81,7 +83,7 @@ def get_analysis_df(process_name, output, aws_df):
     df_topics = df_topics.sort_values('lines').reset_index(drop=True)
 
     for topic in topic_list:
-        df_topics[str(topic)] = df_topics.apply(lambda row: set_proportion(row, topic), axis=1).astype(float)
+        df_topics[topic] = df_topics.apply(lambda row: set_proportion(row, topic), axis=1).astype(float)
 
     df_topics.to_csv('Test.csv', index=False)
 
@@ -109,4 +111,5 @@ def merge_process(output, process_name, aws_df):
     aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}/{process_name}_analytics/df_{process_name}_analytics")
     aws_df.upload_to_s3(df_terms_cpy, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}/{process_name}_all_terms/df_{process_name}_all_terms")
     aws_df.upload_to_s3(df_terms, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_name}/{process_name}_terms_weight/df_{process_name}_terms_weight")
+
 

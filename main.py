@@ -29,7 +29,7 @@ def main():
         aws_comprehend = AwsComprehend()
 
     if args.bucket_uri is not None:
-        loop(aws_df, aws_comprehend, args.mode, args['bucket-uri'], args.name)
+        loop(aws_df, aws_comprehend, args.mode, args.bucket_uri, args.name)
 
     if args.file_uri is not None:
         thread_process(aws_df, aws_comprehend, args.file_uri, args.mode, args.name, job_id=args.job_id if args.mode == "merging" else None)

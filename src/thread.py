@@ -27,10 +27,10 @@ def get_process_name(file_uri):
     return path.splitext(process_name)[0].replace('.', '-')
 
 
-def thread_process(aws_df, aws_comprehend, file_uri, mode, job_id=None):
+def thread_process(aws_df, aws_comprehend, file_uri, mode, name, job_id=None):
     start_time = time()
 
-    process_name = f"df-{get_process_name(file_uri)}"
+    process_name = f"{name}"
 
     write_thread_logs(process_name, "Process is starting")
 

@@ -34,7 +34,7 @@ def clean_row(row):
     with catch_warnings():
         simplefilter("ignore")
 
-        text = BeautifulSoup(str(row['body']), 'lxml').get_text().replace('\n', ' ')
+        text = BeautifulSoup(str(row[get_env_var("BODY_VAR", 'str')]), 'lxml').get_text().replace('\n', ' ')
 
         text = sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", text)
 
@@ -51,8 +51,8 @@ def clean_db(df):
     if df is None:
         raise Exception(f"No df succeed")
 
-    if 'body' not in df.columns:
-        raise Exception(f"Please make sure you have a body column in your df")
+    if get_env_var("BODY_VAR", 'str') not in df.columns:
+        raise Exception(f"Please make sure you have a {get_env_var('BODY_VAR', 'str')} column in your df")
 
     df['cleaned_text'] = df.apply(lambda row: clean_row(row), axis=1)
 

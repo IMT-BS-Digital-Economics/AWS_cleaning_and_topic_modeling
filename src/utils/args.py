@@ -19,6 +19,8 @@ def create_args():
                     "file URI depending on what you want to do ! Enjoy :)"
     )
 
+    parser.add_argument("--name", type=str, dest="name", action="store", required=True, help="A name for your process")
+
     parser.add_argument("--mode", type=str, dest="mode", action="store",
                         choices={'cleaning', 'topic_analysis', 'merging', 'all'},
                         required=True,

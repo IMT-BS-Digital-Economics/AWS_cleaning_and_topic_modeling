@@ -40,7 +40,7 @@ def get_time_to_go(start_time, max_process_number, table_size, offset):
     return seconds_to_hms(total_second)
 
 
-def loop(aws_df, aws_comprehend, mode, bucket_uri):
+def loop(aws_df, aws_comprehend, mode, bucket_uri, name):
     procs = []
 
     max_process_number = get_env_var('MAX_THREAD', 'int')
@@ -62,7 +62,7 @@ def loop(aws_df, aws_comprehend, mode, bucket_uri):
 
             procs = []
 
-        proc = Process(target=thread_process, args=(aws_df, aws_comprehend, file_uri, mode))
+        proc = Process(target=thread_process, args=(aws_df, aws_comprehend, file_uri, mode, name))
 
         proc.start()
 

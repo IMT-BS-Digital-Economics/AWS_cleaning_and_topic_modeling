@@ -1,5 +1,9 @@
 # AWS_cleaning_and_topic_modeling
 
+<div style="text-align:center">
+  <img src="https://th.bing.com/th/id/OIG.HG4RearsJ_yzo5dTMKPX?pid=ImgGn" alt="Project Logo" width="300" style="border-radius: 50%;">
+</div>
+
 ## About the script
 
 This script is designed to clean and run topic modeling over emails bodies
@@ -51,7 +55,39 @@ BODY_VAR = Name of the column that contain the body of the emaik inside CSV file
 
 To start the project:  ``` python main.py --h```
 
-To get the usage of the project and run it for the first time !
+### Arguments
 
-**Enjoy!**
+```
+  --name NAME           A name for your process
+  --mode {cleaning,merging,all,topic_analysis}
+                        - Cleaning: The email in the given db will be just
+                        cleaned and send as parquet on a S3 bucket
+                        - Topic Analysis: The email will be cleaned and then analyzed
+                        using topic modeling 
+                        - Merging: If you only want to merge an already existing cleaned file with the
+                        results from AWS comprehend you can go for this: You
+                        must provide a JobId of the AWS Comprehend Job and a
+                        fileUri of the cleaned parquet file that was used to
+                        launch the job
+                        - All: It will run through each steps
+  --bucket-uri BUCKET_URI
+                        Provide the bucket URI if you want to treat with a
+                        whole bucket content
+  --file-uri FILE_URI   Provide the file URI if you want to treat only one
+                        document
+  --job-id JOB_ID       Only in merging mode you need to provide the JobId of
+                        the AWS Comprehend Job to start merging from it
+```
+
+## Start the project using Docker
+
+Make sure the latest version of docker is installed on your machine. Then run the following command:
+
+```docker build -t aws-clean-topic-modeling .```
+
+Then run this:
+
+```docker run -d -v "$(pwd)":/app/ aws-clean-topic-modeling [arguments]```
+
+Enjoy :)
 

@@ -1,8 +1,8 @@
 # AWS_cleaning_and_topic_modeling
 
-<div style="text-align:center">
-  <img src="https://th.bing.com/th/id/OIG.HG4RearsJ_yzo5dTMKPX?pid=ImgGn" alt="Project Logo" width="300" style="border-radius: 50%;">
-</div>
+<p align="center">
+  <img src="https://th.bing.com/th/id/OIG.HG4RearsJ_yzo5dTMKPX?pid=ImgGn" alt="Project Logo" height="auto" width="300" style="border-radius:50%">
+</p>
 
 ## About the script
 

@@ -13,9 +13,11 @@ from os import system, path
 
 from tarfile import open
 
-from pandas import read_csv, read_parquet
+from pandas import read_csv
 
 from src.utils.env_handle import get_env_var
+from src.utils.logs import write_thread_logs
+from src.utils.string_handling import replace_last
 
 
 def download_results(process_name, output, aws_df):
@@ -90,9 +92,24 @@ def get_analysis_df(process_name, output, aws_df):
     return df_topics, df_terms_cpy, df_terms
 
 
-def merge_process(output, process_name, aws_df):
-    process_dir = 'default'
+def upload_results(df, aws_df, process_name, category):
+    if '-idx-' in process_name:
+        process_dir = process_name[:process_name.find('-idx-')]
+    else:
+        process_dir = process_name
 
+        idx = process_dir.rfind('_')
+
+        process_dir = replace_last(process_dir, process_dir[idx:], '')
+
+    s3_path = f'{process_dir}/{process_dir}_{category}/df_{process_name}_{category}'
+
+    response = aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), s3_path)
+
+    write_thread_logs(process_name, f"Results has been uploaded to s3 here: {response}")
+
+
+def merge_process(output, process_name, aws_df):
     if output is None:
         return
 
@@ -110,13 +127,7 @@ def merge_process(output, process_name, aws_df):
 
     df.drop(['docname', 'lines', 'topic', 'proportion'], axis=1, inplace=True)
 
-    if '-idx-' in process_name:
-        process_dir = process_name[:process_name.find('-idx-')]
-    else:
-        process_dir = process_name
+    dfs = {'analytics': df, 'all_terms': df_terms_cpy, 'terms_weight': df_terms}
 
-    aws_df.upload_to_s3(df, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_dir}/{process_dir}_analytics/df_{process_name}_analytics")
-    aws_df.upload_to_s3(df_terms_cpy, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_dir}/{process_dir}_all_terms/df_{process_name}_all_terms")
-    aws_df.upload_to_s3(df_terms, get_env_var('AWS_STORAGE_BUCKET', 'str'), f"{process_dir}/{process_dir}_terms_weight/df_{process_name}_terms_weight")
-
-
+    for category in dfs:
+        upload_results(dfs[category], aws_df, process_name, category)

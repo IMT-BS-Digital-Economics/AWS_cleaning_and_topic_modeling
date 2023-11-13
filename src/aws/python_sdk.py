@@ -45,9 +45,16 @@ class AwsDf:
         except ArrowInvalid:
             return wr.s3.read_csv(path=bucket_link, boto3_session=self.aws_session)
 
-
     def get_s3_bucket_obj_list(self, bucket_link):
         return wr.s3.list_objects(bucket_link, boto3_session=self.aws_session)
+
+    def cpy_object(self, obj_path, src_path, new_path):
+        return wr.s3.copy_objects(
+            paths=[obj_path],
+            source_path=src_path,
+            target_path=new_path,
+            boto3_session=self.aws_session
+        )
 
     @verify_session(renew_session=__create_session)
     def get_df_from_athena(self, query, db):

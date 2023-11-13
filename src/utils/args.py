@@ -19,11 +19,10 @@ def create_args():
                     "file URI depending on what you want to do ! Enjoy :)"
     )
 
-    parser.add_argument("--name", type=str, dest="name", action="store", required=True, help="A name for your process")
+    parser.add_argument("name", type=str, help="A name for your process")
 
-    parser.add_argument("--mode", type=str, dest="mode", action="store",
+    parser.add_argument("mode", type=str, action="store",
                         choices={'cleaning', 'topic_analysis', 'merging', 'all'},
-                        required=True,
                         help="Cleaning: The email in the given db will be just cleaned and send as parquet on a S3 "
                              "bucket or Topic Analysis: The email will be cleaned and then analyzed using topic "
                              "modeling or Merging: If you only want to merge an already existing cleaned file with "
@@ -31,28 +30,31 @@ def create_args():
                              "Comprehend Job and a fileUri of the cleaned parquet file that was used to launch the job "
                              "or All: It will run through each steps")
 
-    parser.add_argument('--bucket-uri', type=str, dest="bucket_uri", action="store",
+    parser.add_argument('--bucketUri', type=str, dest="bucketUri", action="store",
                         help="Provide the bucket URI if you want to treat with a whole "
                              "bucket content")
 
-    parser.add_argument('--file-uri', type=str, dest="file_uri", action="store",
+    parser.add_argument('--fileUri', type=str, dest="fileUri", action="store",
                         help="Provide the file URI if you want to treat only one document")
 
-    parser.add_argument('--job-id', type=str, dest="job_id", action="store", help="Only in merging mode you need to "
+    parser.add_argument('--job-id', type=str, dest="jobId", action="store", help="Only in merging mode you need to "
                                                                                   "provide the JobId of the AWS "
                                                                                   "Comprehend Job to start merging "
                                                                                   "from it")
+
+    parser.add_argument('--s', dest="treatSubject", action="store_true", help="Add this argument if you want to treat "
+                                                                            "the subject of each emails too")
 
     return parser.parse_args()
 
 
 def handle_args():
-    args = create_args()
+    args = vars(create_args())
 
-    if args.mode != "merging" and args.bucket_uri is None and args.file_uri is None:
+    if args.get('mode') != "merging" and args.get('bucketUri') is None and args.get('fileUri') is None:
         raise Exception('You should specify a bucket uri or a file uri\nFor more: see main.py -h')
 
-    if args.mode == "merging" and (args.job_id is None or args.file_uri is None):
+    if args.get('mode') == "merging" and (args.get('job_id') is None or args.get('file_uri') is None):
         raise Exception('You should add a Job Id referring to the AWS Comprehend Job you want to merge results and a '
                         'file_uri referring to the cleaned file from\nFor more: see main.py -h')
 

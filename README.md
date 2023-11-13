@@ -47,7 +47,8 @@ MAX_THREAD=(Number of threads to be used by the algo, depend of the machine capa
 
 # CSV INPUT
 
-BODY_VAR = Name of the column that contain the body of the emaik inside CSV files used as input
+TEXT = Name of the column that contain the body of the email inside CSV files used as input
+SUBJECT = Name of the column that contain the subject of the email inside CSV files used as input
 
 ```
 
@@ -58,25 +59,29 @@ To start the project:  ``` python main.py --h```
 ### Arguments
 
 ```
-  --name NAME           A name for your process
-  --mode {cleaning,merging,all,topic_analysis}
-                        - Cleaning: The email in the given db will be just
-                        cleaned and send as parquet on a S3 bucket
-                        - Topic Analysis: The email will be cleaned and then analyzed
-                        using topic modeling 
-                        - Merging: If you only want to merge an already existing cleaned file with the
-                        results from AWS comprehend you can go for this: You
-                        must provide a JobId of the AWS Comprehend Job and a
-                        fileUri of the cleaned parquet file that was used to
-                        launch the job
-                        - All: It will run through each steps
-  --bucket-uri BUCKET_URI
-                        Provide the bucket URI if you want to treat with a
-                        whole bucket content
-  --file-uri FILE_URI   Provide the file URI if you want to treat only one
-                        document
-  --job-id JOB_ID       Only in merging mode you need to provide the JobId of
-                        the AWS Comprehend Job to start merging from it
+usage: main.py [-h] [--bucketUri BUCKETURI] [--fileUri FILEURI] [--job-id JOBID] [--s]
+               name {merging,topic_analysis,all,cleaning}
+
+    positional arguments:
+      name                  A name for your process
+      {merging,topic_analysis,all,cleaning}
+                            - Cleaning: The email in the given db will be just cleaned and send as parquet on a S3
+                            bucket
+                            - Topic Analysis: The email will be cleaned and then analyzed using topic modeling
+                            - Merging: If you only want to merge an already existing cleaned file with the results
+                            from AWS comprehend you can go for this: You must provide a JobId of the AWS Comprehend
+                            Job and a fileUri of the cleaned parquet file that was used to launch the job or All: It
+                            will run through each steps
+                            - All: It will do all of the above. You need to add a fileUri or a bucketUri
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      --bucketUri BUCKETURI
+                            Provide the bucket URI if you want to treat with a whole bucket content
+      --fileUri FILEURI     Provide the file URI if you want to treat only one document
+      --job-id JOBID        Only in merging mode you need to provide the JobId of the AWS Comprehend Job to start
+                            merging from it
+      --s                   Add this argument if you want to treat the subject of each emails too
 ```
 
 ## Start the project using Docker

@@ -27,27 +27,34 @@ def get_process_name(file_uri):
     return path.splitext(process_name)[0].replace('.', '-')
 
 
-def thread_process(aws_df, aws_comprehend, file_uri, mode, name, job_id=None):
+def main_process(settings, file_uri, job_id, subject=False):
     start_time = time()
-
-    process_name = f"{name}"
-
-    write_thread_logs(process_name, "Process is starting")
 
     output = None
 
-    if mode == "cleaning" or mode == "all":
+    column = "TEXT" if not subject else "SUBJECT"
+
+    process_name = f"{settings.get('name')}_{column.lower()}"
+
+    if settings.get('mode') in ['cleaning', 'all']:
         write_thread_logs(process_name, "Now, we will clean emails")
 
-        file_uri = clean_process(file_uri, aws_df, process_name, start_time)
+        file_uri = clean_process(file_uri, settings.get('awsDf'), process_name, start_time, column)
 
-    if mode == "topic_analysis" or mode == "all":
-        output = analysis_process(file_uri, aws_comprehend, aws_df, process_name)
+    if settings.get('mode') in ['topic_analysis', 'all']:
+        output = analysis_process(file_uri, settings.get('awsComprehend'), settings.get('awsDf'), process_name)
 
-    if mode == "merging" or mode == "all" or mode == "topic_analysis":
+    if settings.get('mode') in ['merging', 'all', 'topic_analysis']:
         if output is None and job_id is not None:
-            output = get_output_from_aws_comprehend_status(job_id, aws_comprehend, file_uri)
+            output = get_output_from_aws_comprehend_status(job_id, settings.get('awsComprehend'), file_uri)
 
-        merge_process(output, process_name, aws_df)
+        merge_process(output, process_name, settings.get('awsDf'))
 
     write_thread_logs(process_name, f"process has been finished in {int(time() - start_time)}s")
+
+
+def thread_process(settings, file_uri, job_id=None):
+    main_process(settings, file_uri, job_id)
+
+    if settings.get('performOnSubject'):
+        main_process(settings, file_uri, job_id, subject=True)

@@ -40,7 +40,7 @@ def get_time_to_go(start_time, max_process_number, table_size, offset):
     return seconds_to_hms(total_second)
 
 
-def loop(aws_df, aws_comprehend, mode, bucket_uri, name):
+def loop(settings, bucket_uri):
     procs = []
 
     max_process_number = get_env_var('MAX_THREAD', 'int')
@@ -49,7 +49,7 @@ def loop(aws_df, aws_comprehend, mode, bucket_uri, name):
 
     time_to_go = "Unknow"
 
-    files_in_bucket = aws_df.get_s3_bucket_obj_list(bucket_uri)
+    files_in_bucket = settings.get('awsDf').get_s3_bucket_obj_list(bucket_uri)
 
     for idx, file_uri in enumerate(files_in_bucket):
         print(f'\rTime remaining: ~{time_to_go}', flush=True, end='')
@@ -62,7 +62,12 @@ def loop(aws_df, aws_comprehend, mode, bucket_uri, name):
 
             procs = []
 
-        proc = Process(target=thread_process, args=(aws_df, aws_comprehend, file_uri, mode, f'{name}-idx-{idx}'))
+        if 'idx' not in settings.get('name'):
+            settings['name'] = f"{settings.get('name')}-idx-{idx}"
+
+        settings['name'] = settings.get('name').replace(f'{idx - 1}', f'{idx}')
+
+        proc = Process(target=thread_process, args=(settings, file_uri))
 
         proc.start()
 

@@ -21,18 +21,20 @@ from src.utils.args import handle_args
 def main():
     args = handle_args()
 
-    aws_df = AwsDf()
+    settings = {
+        'name': args.get('name'), 'mode': args.get('mode'), 'performOnSubject': args.get('treatSubject'), 'awsDf': AwsDf()
+    }
 
-    aws_comprehend = None
+    if settings.get('mode') in ["topic_analysis", "all", "merging"]:
+        settings['awsComprehend'] = AwsComprehend()
 
-    if args.mode == "topic_analysis" or args.mode == "all" or args.mode == "merging":
-        aws_comprehend = AwsComprehend()
+    if args.get('bucketUri') is not None:
+        loop(settings, args.get('bucketUri'))
 
-    if args.bucket_uri is not None:
-        loop(aws_df, aws_comprehend, args.mode, args.bucket_uri, args.name)
-
-    if args.file_uri is not None:
-        thread_process(aws_df, aws_comprehend, args.file_uri, args.mode, args.name, job_id=args.job_id if args.mode == "merging" else None)
+    if args.get('fileUri') is not None:
+        thread_process(
+            settings, args.get('fileUri'), job_id=args.get('jobId') if settings.get('mode') == "merging" else None
+        )
 
 
 if __name__ == "__main__":

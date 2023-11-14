@@ -30,11 +30,11 @@ def clean_text(text):
     return text
 
 
-def clean_row(row):
+def clean_row(row, column):
     with catch_warnings():
         simplefilter("ignore")
 
-        text = BeautifulSoup(str(row[get_env_var("BODY_VAR", 'str')]), 'lxml').get_text().replace('\n', ' ')
+        text = BeautifulSoup(str(row[get_env_var(column, 'str')]), 'lxml').get_text().replace('\n', ' ')
 
         text = sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", text)
 
@@ -47,27 +47,29 @@ def clean_row(row):
         return clean_text(text)
 
 
-def clean_db(df):
+def clean_db(df, column):
     if df is None:
         raise Exception(f"No df succeed")
 
-    if get_env_var("BODY_VAR", 'str') not in df.columns:
-        raise Exception(f"Please make sure you have a {get_env_var('BODY_VAR', 'str')} column in your df: {df.columns}")
+    column_name = get_env_var(column, 'str')
 
-    df['cleaned_text'] = df.apply(lambda row: clean_row(row), axis=1)
+    if column_name not in df.columns:
+        raise Exception(f"Please make sure you have a {column_name} column in your df: {df.columns}")
+
+    df[f'cleaned_{column.lower()}'] = df.apply(lambda row: clean_row(row, column), axis=1)
 
     return df
 
 
-def clean_df(file_uri, aws_df):
+def clean_df(file_uri, aws_df, column):
     df = aws_df.get_bucket_as_df(file_uri)
 
-    return clean_db(df)
+    return clean_db(df, column)
 
 
-def clean_process(file_uri, aws_df, process_name, start_time):
+def clean_process(file_uri, aws_df, process_name, start_time, column):
     try:
-        df = clean_df(file_uri, aws_df)
+        df = clean_df(file_uri, aws_df, column)
     except Exception as e:
         write_thread_logs(process_name, f"Exception raised during emails cleaning: {format_exc()}")
         return
@@ -77,7 +79,7 @@ def clean_process(file_uri, aws_df, process_name, start_time):
     upload_time = time()
 
     try:
-        upload_response = aws_df.upload_to_s3(df, get_env_var("AWS_STORAGE_BUCKET", "str"), process_name)
+        upload_response = aws_df.upload_to_s3(df, get_env_var("AWS_TMP_BUCKET", "str"), process_name)
     except Exception as e:
         write_thread_logs(process_name, f"Exception raised during upload of cleaned emails: {format_exc()}")
         return

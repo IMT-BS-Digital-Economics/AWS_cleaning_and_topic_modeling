@@ -62,7 +62,7 @@ def clean_db(df, column):
 
 
 def clean_df(file_uri, aws_df, column):
-    df = aws_df.get_bucket_as_df(file_uri)
+    df = aws_df.download_df_from_s3(file_uri)
 
     return clean_db(df, column)
 
@@ -78,16 +78,22 @@ def clean_process(file_uri, aws_df, process_name, start_time, column):
 
     upload_time = time()
 
-    try:
-        upload_response = aws_df.upload_to_s3(df, get_env_var("AWS_TMP_BUCKET", "str"), process_name)
-    except Exception as e:
-        write_thread_logs(process_name, f"Exception raised during upload of cleaned emails: {format_exc()}")
-        return
+    upload_response = None
 
-    if 'paths' not in upload_response:
-        write_thread_logs(process_name, 'No path found to use as input for AWS comprehend')
-        return None
+    dfs_to_upload = [{'df': df[[f'cleaned_{column.lower()}']], 'name': f'cleaned_column_{process_name}'}, {'df': df, 'name': f'cleaned_{process_name}'}]
 
-    write_thread_logs(process_name, f"Df has been uploaded in {int(time() - upload_time)}s ! AWS response: {upload_response}")
+    for df in dfs_to_upload:
+        try:
+            upload_response = aws_df.upload_to_s3(df.get('df'), get_env_var("AWS_TMP_BUCKET", "str"), df.get('name'))
+
+            if 'paths' not in upload_response:
+                write_thread_logs(process_name, 'No path found to use as input for AWS comprehend')
+                return None
+
+            write_thread_logs(process_name,
+                              f"Df has been uploaded in {int(time() - upload_time)}s ! AWS response: {upload_response}")
+
+        except Exception as e:
+            write_thread_logs(process_name, f"Exception raised during upload of {df.get('name')}: {format_exc()}")
 
     return upload_response['paths'][0]

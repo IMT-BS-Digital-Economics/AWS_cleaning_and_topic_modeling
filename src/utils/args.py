@@ -54,7 +54,7 @@ def handle_args():
     if args.get('mode') != "merging" and args.get('bucketUri') is None and args.get('fileUri') is None:
         raise Exception('You should specify a bucket uri or a file uri\nFor more: see main.py -h')
 
-    if args.get('mode') == "merging" and (args.get('job_id') is None or args.get('file_uri') is None):
+    if args.get('mode') == "merging" and (args.get('jobId') is None or args.get('fileUri') is None):
         raise Exception('You should add a Job Id referring to the AWS Comprehend Job you want to merge results and a '
                         'file_uri referring to the cleaned file from\nFor more: see main.py -h')
 

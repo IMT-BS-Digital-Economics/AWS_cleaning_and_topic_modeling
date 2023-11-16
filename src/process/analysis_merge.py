@@ -26,24 +26,26 @@ def download_results(process_name, output, aws_df):
     terms_filename = "topic-terms.csv"
     topics_filename = "doc-topics.csv"
 
-    if not path.isdir(work_path):
-        analysis_ouput_compress = f"{work_path}/output.tar.gz"
+    analysis_ouput_compress = f"{work_path}/output.tar.gz"
 
+    if not path.isdir(work_path):
         system(f'mkdir {work_path}')
 
-        if 'output_uri' not in output or 'bucket_uri' not in output:
-            return None
+    if 'output_uri' not in output or 'bucket_uri' not in output:
+        return None
 
-        key = output['output_uri'][output['output_uri'].find(output['bucket_uri']) + len(output['bucket_uri']) + 1:]
+    output_uri = output['output_uri'].replace('s3://', '')
+
+    file_name = output_uri[output_uri.find('/') + 1:]
 
         aws_df.download_file_using_client(output['bucket_uri'], key, analysis_ouput_compress)
 
-        files = open(analysis_ouput_compress)
+    files = open(analysis_ouput_compress)
 
-        files.extractall(work_path)
+    files.extractall(work_path)
 
-        if not path.isfile(f'{work_path}/{terms_filename}') or not path.isfile(f'{work_path}/{topics_filename}'):
-            return None
+    if not path.isfile(f'{work_path}/{terms_filename}') or not path.isfile(f'{work_path}/{topics_filename}'):
+        return None
 
     results = {'terms': read_csv(f'{work_path}/{terms_filename}'), 'topics': read_csv(f'{work_path}/{topics_filename}')}
 
@@ -110,10 +112,10 @@ def upload_results(df, aws_df, process_name, category):
 
 
 def merge_process(output, process_name, aws_df):
-    if output is None:
+    if output is None or output['output_uri'] is None:
         return
 
-    df = aws_df.get_bucket_as_df(output['input_uri'])
+    df = aws_df.download_df_from_s3(output['input_uri'])
 
     if df is None:
         return

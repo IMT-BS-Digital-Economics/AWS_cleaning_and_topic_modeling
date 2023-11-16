@@ -36,6 +36,8 @@ def main_process(settings, file_uri, job_id, subject=False):
 
     process_name = f"{settings.get('name')}_{column.lower()}"
 
+    bucket_result = get_env_var("AWS_RESULT_BUCKET", "str")
+
     if settings.get('mode') in ['cleaning', 'all']:
         write_thread_logs(process_name, "Now, we will clean emails")
 

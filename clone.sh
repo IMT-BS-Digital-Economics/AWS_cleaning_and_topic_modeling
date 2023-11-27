@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./.env.git
+source "./.env.git"
 
 echo "Cloning repository with GIT_TOKEN: $GIT_TOKEN"
 

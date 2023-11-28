@@ -36,14 +36,14 @@ class AwsDf:
         self.aws_session = self.__create_session()
 
     @verify_session(renew_session=__create_session)
-    def get_bucket_as_df(self, bucket_link):
-        if not wr.s3.does_object_exist(bucket_link, boto3_session=self.aws_session):
-            raise Exception(f'No bucket found with this path: {bucket_link}')
+    def download_df_from_s3(self, file_uri):
+        if not wr.s3.does_object_exist(file_uri, boto3_session=self.aws_session):
+            raise Exception(f'No bucket found with this path: {file_uri}')
 
         try:
-            return wr.s3.read_parquet(path=bucket_link, boto3_session=self.aws_session)
+            return wr.s3.read_parquet(path=file_uri, boto3_session=self.aws_session)
         except ArrowInvalid:
-            return wr.s3.read_csv(path=bucket_link, boto3_session=self.aws_session)
+            return wr.s3.read_csv(path=file_uri, boto3_session=self.aws_session)
 
     def get_s3_bucket_obj_list(self, bucket_link):
         return wr.s3.list_objects(bucket_link, boto3_session=self.aws_session)
@@ -62,7 +62,7 @@ class AwsDf:
 
     @verify_session(renew_session=__create_session)
     def upload_to_s3(self, df, bucket, name, ext="parquet"):
-        bucket_path = f"s3://{bucket}/{name}"
+        bucket_path = f"s3://{bucket}/{name}.{ext}"
 
         response = {}
 
@@ -77,7 +77,7 @@ class AwsDf:
 
         return response
 
-    def download_file_using_client(self, file_uri, file_name, output_path):
+    def download_file_using_client(self, bucket, file_name, output_path):
         aws_client = client(
             's3',
             region_name=get_env_var('AWS_REGION_NAME', 'str'),
@@ -85,4 +85,4 @@ class AwsDf:
             aws_secret_access_key=get_env_var('AWS_SECRET_ACCESS_KEY', 'str')
         )
 
-        aws_client.download_file(file_uri, file_name, output_path)
+        aws_client.download_file(bucket, file_name, output_path)

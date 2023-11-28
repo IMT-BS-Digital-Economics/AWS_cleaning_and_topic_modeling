@@ -8,11 +8,13 @@
     About: To merge result from analysis with existing df
 
 """
-
-from os import system, path
+import tarfile
+from ast import literal_eval
+from os import system, path, listdir
 
 from tarfile import open
 
+import pandas as pd
 from pandas import read_csv
 
 from src.utils.env_handle import get_env_var
@@ -21,35 +23,49 @@ from src.utils.string_handling import replace_last
 
 
 def download_results(process_name, output, aws_df):
-    work_path = f"./tmp/{process_name}"
+    work_path = f'./tmp/{process_name}'
 
-    terms_filename = "topic-terms.csv"
-    topics_filename = "doc-topics.csv"
+    output_tar_fp = f'{work_path}/output.tar.gz'
 
     if not path.isdir(work_path):
-        analysis_ouput_compress = f"{work_path}/output.tar.gz"
-
         system(f'mkdir {work_path}')
 
-        if 'output_uri' not in output or 'bucket_uri' not in output:
-            return None
+    if 'output_uri' not in output or 'bucket_uri' not in output:
+        return None
 
-        key = output['output_uri'][output['output_uri'].find(output['bucket_uri']) + len(output['bucket_uri']) + 1:]
+    output_uri = output['output_uri'].replace('s3://', '')
 
-        aws_df.download_file_using_client(output['bucket_uri'], key, analysis_ouput_compress)
+    file_name = output_uri[output_uri.find('/') + 1:]
 
-        files = open(analysis_ouput_compress)
+    aws_df.download_file_using_client(output['bucket_uri'], file_name, output_tar_fp)
 
-        files.extractall(work_path)
+    files = open(output_tar_fp)
 
-        if not path.isfile(f'{work_path}/{terms_filename}') or not path.isfile(f'{work_path}/{topics_filename}'):
-            return None
+    files.extractall(work_path)
 
-    results = {'terms': read_csv(f'{work_path}/{terms_filename}'), 'topics': read_csv(f'{work_path}/{topics_filename}')}
+    files.close()
 
-    system(f"rm -rf {work_path}")
+    return {'path': work_path, 'files': listdir(work_path)}
 
-    return results
+
+def get_sentiment_data(process_name, output, aws_df):
+    result = download_results(process_name, output, aws_df)
+
+    if not result:
+        return None
+
+    content = []
+
+    tar = tarfile.open(f'{result["path"]}/output.tar.gz', "r:gz")
+    for member in tar.getmembers():
+        f = tar.extractfile(member)
+        if f is not None:
+            for element in f.read().split(b'\n')[:-1]:
+                content.append(literal_eval(element.decode('utf-8')))
+
+    df = pd.DataFrame(content)
+
+    return df.shift(-1)[['Sentiment', 'SentimentScore']]
 
 
 def set_proportion(row, topic):
@@ -67,8 +83,10 @@ def get_analysis_df(process_name, output, aws_df):
     if results is None:
         return None, None, None
 
-    df_topics = results['topics']
-    df_terms = results['terms']
+    df_topics = read_csv(f'{results["path"]}/topic-terms.csv')
+    df_terms = read_csv(f'{results["path"]}/doc-topics.csv')
+
+    system(f'rm -rf {results["path"]}')
 
     df_topics = df_topics.shift(-1)
 
@@ -109,11 +127,11 @@ def upload_results(df, aws_df, process_name, category):
     write_thread_logs(process_name, f"Results has been uploaded to s3 here: {response}")
 
 
-def merge_process(output, process_name, aws_df):
-    if output is None:
+def merge_process(output, process_name, aws_df, output_sentiment):
+    if output is None or output['output_uri'] is None:
         return
 
-    df = aws_df.get_bucket_as_df(output['input_uri'])
+    df = aws_df.download_df_from_s3(output['input_uri'])
 
     if df is None:
         return
@@ -124,6 +142,11 @@ def merge_process(output, process_name, aws_df):
         return
 
     df = df.merge(df_topics, left_index=True, right_index=True)
+
+    if output_sentiment:
+        df_sentiment = get_sentiment_data(process_name, output_sentiment, aws_df)
+
+        df = df.merge(df_sentiment, left_index=True, right_index=True)
 
     df.drop(['docname', 'lines', 'topic', 'proportion'], axis=1, inplace=True)
 

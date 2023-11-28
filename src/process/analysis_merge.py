@@ -83,8 +83,8 @@ def get_analysis_df(process_name, output, aws_df):
     if results is None:
         return None, None, None
 
-    df_topics = read_csv(f'{results["path"]}/{results["files"][0]}')
-    df_terms = read_csv(f'{results["path"]}/{results["files"][1]}')
+    df_topics = read_csv(f'{results["path"]}/topic-terms.csv')
+    df_terms = read_csv(f'{results["path"]}/doc-topics.csv')
 
     system(f'rm -rf {results["path"]}')
 

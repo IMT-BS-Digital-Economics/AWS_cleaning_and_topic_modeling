@@ -9,6 +9,8 @@
 
 """
 
+from multiprocess import Process
+
 from os import path
 
 from time import time
@@ -64,7 +66,18 @@ def main_process(settings, file_uri, job_id, subject=False):
 
 
 def thread_process(settings, file_uri, job_id=None):
-    main_process(settings, file_uri, job_id)
+    def first_thread():
+        main_process(settings, file_uri, job_id)
 
-    if settings.get('performOnSubject'):
-        main_process(settings, file_uri, job_id, subject=True)
+    def second_thread():
+        if settings.get('performOnSubject'):
+            main_process(settings, file_uri, job_id, subject=True)
+
+    first_thread()
+    second_thread()
+
+    thread1 = Process(target=first_thread)
+    thread2 = Process(target=second_thread)
+
+    thread1.start()
+    thread2.start()

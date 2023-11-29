@@ -93,7 +93,7 @@ class AwsComprehend:
     def get_data_from_active_job(self, job_id, job_type):
         return self.aws.describe_sentiment_detection_job(
             JobId=job_id
-        ) if job_type == "sentiment" else self.aws.describe_topics_detection_job(JobId=job_id)[
+        )['SentimentDetectionJobProperties'] if job_type == "sentiment" else self.aws.describe_topics_detection_job(JobId=job_id)[
             'TopicsDetectionJobProperties']
 
     def get_job_progress_by_id(self, job_id, job_type, job_name):
@@ -101,8 +101,8 @@ class AwsComprehend:
 
         self.jobs[job_name] = data
 
-        if 'JobStatus' in data:
-            return data['JobStatus']
+        if 'JobStatus' in self.jobs[job_name]:
+            return self.jobs[job_name]['JobStatus']
 
         return None
 

@@ -49,7 +49,7 @@ def download_results(process_name, output, aws_df):
 
 
 def get_sentiment_data(process_name, output, aws_df):
-    result = download_results(process_name, output, aws_df)
+    result = download_results(process_name + "tadaronne", output, aws_df)
 
     if not result:
         return None
@@ -83,8 +83,8 @@ def get_analysis_df(process_name, output, aws_df):
     if results is None:
         return None, None, None
 
-    df_topics = read_csv(f'{results["path"]}/topic-terms.csv')
-    df_terms = read_csv(f'{results["path"]}/doc-topics.csv')
+    df_terms = read_csv(f'{results["path"]}/topic-terms.csv')
+    df_topics = read_csv(f'{results["path"]}/doc-topics.csv')
 
     system(f'rm -rf {results["path"]}')
 
@@ -145,6 +145,9 @@ def merge_process(output, process_name, aws_df, output_sentiment):
 
     if output_sentiment:
         df_sentiment = get_sentiment_data(process_name, output_sentiment, aws_df)
+
+        if df_sentiment is None:
+            write_thread_logs(process_name, "df sentiment has been marked as None")
 
         df = df.merge(df_sentiment, left_index=True, right_index=True)
 

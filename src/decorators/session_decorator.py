@@ -22,7 +22,7 @@ def verify_session(renew_session):
             if not time() - self.session_time > session_expiration:
                 return func(self, *args, **kwargs)
 
-            self.aws = renew_session(self)
+            renew_session(self)
 
             self.session_time = time()
 

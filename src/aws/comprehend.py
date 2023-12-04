@@ -90,12 +90,14 @@ class AwsComprehend:
 
         return 1
 
+    @verify_session(renew_session=__create_client)
     def get_data_from_active_job(self, job_id, job_type):
         return self.aws.describe_sentiment_detection_job(
             JobId=job_id
         )['SentimentDetectionJobProperties'] if job_type == "sentiment" else self.aws.describe_topics_detection_job(JobId=job_id)[
             'TopicsDetectionJobProperties']
 
+    @verify_session(renew_session=__create_client)
     def get_job_progress_by_id(self, job_id, job_type, job_name):
         data = self.get_data_from_active_job(job_id, job_type)
 

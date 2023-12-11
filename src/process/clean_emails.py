@@ -74,7 +74,7 @@ def clean_process(file_uri, aws_df, process_name, start_time, column):
         write_thread_logs(process_name, f"Exception raised during emails cleaning: {format_exc()}")
         return
 
-    write_thread_logs(process_name, f"Emails are cleaned, it took {int(time() - start_time)}s !")
+    write_thread_logs(process_name, f"Emails are cleaned, it took {int(time() - start_time)}s for {df.shape}!")
 
     upload_time = time()
 

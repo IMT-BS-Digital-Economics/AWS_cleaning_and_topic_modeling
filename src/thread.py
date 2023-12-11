@@ -40,6 +40,8 @@ def main_process(settings, file_uri, job_id, subject=False):
 
     process_name = f"{settings.get('name')}_{column.lower()}"
 
+    write_thread_logs(process_name, f"file_uri: [{file_uri}]")
+
     bucket_result = get_env_var("AWS_RESULT_BUCKET", "str")
 
     if settings.get('mode') in ['cleaning', 'all']:
@@ -72,9 +74,6 @@ def thread_process(settings, file_uri, job_id=None):
     def second_thread():
         if settings.get('performOnSubject'):
             main_process(settings, file_uri, job_id, subject=True)
-
-    first_thread()
-    second_thread()
 
     thread1 = Process(target=first_thread)
     thread2 = Process(target=second_thread)

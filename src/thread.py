@@ -62,7 +62,7 @@ def main_process(settings, file_uri, job_id, subject=False):
             output_uri = run_job(file_uri, settings.get('awsComprehend'), process_name, 'topic', job_id=job_id)
             output = {'input_uri': file_uri, 'output_uri': output_uri, 'bucket_uri': bucket_result}
 
-        merge_process(output, process_name, settings.get('awsDf'), output_sentiment)
+        merge_process(output, process_name, settings.get('awsDf'), output_sentiment, column)
 
     write_thread_logs(process_name, f"process has been finished in {int(time() - start_time)}s")
 

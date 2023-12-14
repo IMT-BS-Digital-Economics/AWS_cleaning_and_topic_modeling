@@ -77,7 +77,7 @@ def set_proportion(row, topic):
     return row['proportion'][index]
 
 
-def get_analysis_df(process_name, output, aws_df):
+def get_analysis_df(process_name, output, aws_df, column):
     results = download_results(process_name, output, aws_df)
 
     if results is None:
@@ -90,11 +90,14 @@ def get_analysis_df(process_name, output, aws_df):
 
     df_topics = df_topics.shift(-1)
 
-    df_terms['topic'] = df_terms.apply(lambda row: 'Topic ' + str(row['topic']), axis=1)
+    df_terms[f'topic_{column}'] = df_terms.apply(lambda row: f'Topic_{column} ' + str(row['topic']), axis=1)
 
     topic_list = df_terms.drop_duplicates(['topic'])['topic'].astype(str).tolist()
 
-    df_terms_cpy = df_terms.groupby('topic', as_index=False).agg({'term': list, 'weight': list})
+    df_terms[f'term_{column}'] = df_terms['term']
+    df_terms[f'weight_{column}'] = df_terms['weight']
+
+    df_terms_cpy = df_terms.groupby(f'topic_{column}', as_index=False).agg({f'term_{column}': list, f'weight_{column}': list})
 
     df_topics = df_topics.groupby('docname', as_index=False).agg({'topic': list, 'proportion': list})
 
@@ -103,7 +106,7 @@ def get_analysis_df(process_name, output, aws_df):
     df_topics = df_topics.sort_values('lines').reset_index(drop=True)
 
     for topic in topic_list:
-        df_topics[topic] = df_topics.apply(lambda row: set_proportion(row, topic), axis=1).astype(float)
+        df_topics[f'topic_{topic}_{column}'] = df_topics.apply(lambda row: set_proportion(row, topic), axis=1).astype(float)
 
     df_topics.to_csv('Test.csv', index=False)
 
@@ -127,7 +130,7 @@ def upload_results(df, aws_df, process_name, category):
     write_thread_logs(process_name, f"Results has been uploaded to s3 here: {response}")
 
 
-def merge_process(output, process_name, aws_df, output_sentiment):
+def merge_process(output, process_name, aws_df, output_sentiment, column):
     if output is None or output['output_uri'] is None:
         return
 
@@ -136,7 +139,7 @@ def merge_process(output, process_name, aws_df, output_sentiment):
     if df is None:
         return
 
-    df_topics, df_terms_cpy, df_terms = get_analysis_df(process_name, output, aws_df)
+    df_topics, df_terms_cpy, df_terms = get_analysis_df(process_name, output, aws_df, column)
 
     if df_topics is None:
         return

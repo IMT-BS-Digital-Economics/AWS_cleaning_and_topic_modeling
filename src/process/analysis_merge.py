@@ -90,14 +90,15 @@ def get_analysis_df(process_name, output, aws_df, column):
 
     df_topics = df_topics.shift(-1)
 
-    df_terms[f'topic_{column}'] = df_terms.apply(lambda row: f'Topic_{column} ' + str(row['topic']), axis=1)
+    df_terms['topic'] = df_terms.apply(lambda row: 'Topic ' + str(row['topic']), axis=1)
 
     topic_list = df_terms.drop_duplicates(['topic'])['topic'].astype(str).tolist()
 
-    df_terms[f'term_{column}'] = df_terms['term']
-    df_terms[f'weight_{column}'] = df_terms['weight']
+    df_terms['type'] = df_terms.apply(lambda row: f'topic-{column}-{process_name}', axis=1)
 
-    df_terms_cpy = df_terms.groupby(f'topic_{column}', as_index=False).agg({f'term_{column}': list, f'weight_{column}': list})
+    df_terms_cpy = df_terms.groupby('topic', as_index=False).agg({'term': list, 'weight': list})
+
+    df_terms_cpy['type'] = df_terms_cpy.apply(lambda row: f'topic-{column}-{process_name}', axis=1)
 
     df_topics = df_topics.groupby('docname', as_index=False).agg({'topic': list, 'proportion': list})
 
@@ -106,9 +107,11 @@ def get_analysis_df(process_name, output, aws_df, column):
     df_topics = df_topics.sort_values('lines').reset_index(drop=True)
 
     for topic in topic_list:
-        df_topics[f'topic_{topic}_{column}'] = df_topics.apply(lambda row: set_proportion(row, topic), axis=1).astype(float)
+        df_topics[topic] = df_topics.apply(lambda row: set_proportion(row, topic), axis=1).astype(float)
 
     df_topics.to_csv('Test.csv', index=False)
+
+    df_topics['type'] = df_topics.apply(lambda row: f'topic-{column}-{process_name}', axis=1)
 
     return df_topics, df_terms_cpy, df_terms
 

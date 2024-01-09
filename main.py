@@ -11,12 +11,9 @@
 
 from src.aws.comprehend import AwsComprehend
 from src.aws.python_sdk import AwsDf
-
-from src.loop import loop
-from src.thread import thread_process
+from src.launch_analysis_process import launch
 
 from src.utils.args import handle_args
-
 
 def main():
     args = handle_args()
@@ -28,13 +25,16 @@ def main():
     if settings.get('mode') in ["topic_analysis", "all", "merging"]:
         settings['awsComprehend'] = AwsComprehend()
 
-    if args.get('bucketUri') is not None:
-        loop(settings, args.get('bucketUri'))
+    launch(settings, args)
 
-    if args.get('fileUri') is not None:
-        thread_process(
-            settings, args.get('fileUri'), job_id=args.get('jobId') if settings.get('mode') == "merging" else None
-        )
+    #
+    # if args.get('bucketUri') is not None:
+    #     loop(settings, args.get('bucketUri'))
+    #
+    # if args.get('fileUri') is not None:
+    #     thread_process(
+    #         settings, args.get('fileUri'), job_id=args.get('jobId') if settings.get('mode') == "merging" else None
+    #     )
 
 
 if __name__ == "__main__":

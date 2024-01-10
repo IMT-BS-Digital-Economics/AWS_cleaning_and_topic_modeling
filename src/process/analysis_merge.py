@@ -133,14 +133,14 @@ def upload_results(df, aws_df, process_name, category):
     write_thread_logs(process_name, f"Results has been uploaded to s3 here: {response}")
 
 
-def merge_process(output, process_name, aws_df, output_sentiment, column):
+def merge_process(output, df, process_name, aws_df, output_sentiment, column):
     if output is None or output['output_uri'] is None:
         return
 
-    df = aws_df.download_df_from_s3(output['input_uri'])
-
-    if df is None:
-        return
+    # df = aws_df.download_df_from_s3(output['input_uri'])
+    #
+    # if df is None:
+    #     return
 
     df_topics, df_terms_cpy, df_terms = get_analysis_df(process_name, output, aws_df, column)
 

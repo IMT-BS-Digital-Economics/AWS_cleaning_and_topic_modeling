@@ -43,7 +43,7 @@ class AwsDf:
         try:
             return wr.s3.read_parquet(path=file_uri, boto3_session=self.aws_session)
         except ArrowInvalid:
-            return wr.s3.read_csv(path=file_uri, boto3_session=self.aws_session)
+            print('ArrowInvalid: the dataset your trying to download is too large')
 
     def get_s3_bucket_obj_list(self, bucket_link):
         return wr.s3.list_objects(bucket_link, boto3_session=self.aws_session)

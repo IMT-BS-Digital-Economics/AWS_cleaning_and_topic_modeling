@@ -34,7 +34,7 @@ def analysis_process(settings, df, subject=False):
 
     upload_path_uri = clean_process(df, settings.get('awsDf'), process_name, start_time, column)
 
-    output = topic_analysis_process(upload_path_uri, settings.get('awsComprehend'), settings.get('awsDf'), process_name, column.lower())
+    output = topic_analysis_process(df, settings.get('awsComprehend'), settings.get('awsDf'), process_name, column.lower())
 
     if settings.get('mode') in ['sentiment', 'all'] and subject and output:
         job_output_uri = run_job(output.get('unique_col_input_uri'), settings.get('awsComprehend'), process_name, 'sentiment')

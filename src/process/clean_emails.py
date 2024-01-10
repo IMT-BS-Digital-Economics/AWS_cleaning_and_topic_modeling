@@ -67,7 +67,7 @@ def format_db(df):
     clean_column(df, "SUBJECT")
 
 
-def clean_df(file_uri, aws_df):
+def clean_df(frames, file_uri, aws_df):
     print(f'Downloading {file_uri}')
 
     df = aws_df.download_df_from_s3(file_uri)
@@ -76,6 +76,8 @@ def clean_df(file_uri, aws_df):
     print(df.columns)
     print(f'Cleaning {file_uri}')
 
+    frames.append(df)
+
     return df
 
 
@@ -83,8 +85,6 @@ def clean_process(df, aws_df, process_name, start_time, column):
     upload_time = time()
 
     upload_response = None
-
-    #dfs_to_upload = [{'df': df[[f'cleaned_{column.lower()}']], 'name': f'cleaned_column_{process_name}'}, {'df': df, 'name': f'cleaned_{process_name}'}]
 
     try:
         upload_response = aws_df.upload_to_s3(df, get_env_var("AWS_TMP_BUCKET", "str"), f'cleaned_{process_name}')

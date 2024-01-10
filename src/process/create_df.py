@@ -8,8 +8,7 @@
     About: The goal of this loop is to attribute a part of the db to a thread to execute cleaning and modeling informations
 
 """
-import multiprocessing
-from time import time
+from multiprocess import Process, Manager
 
 import pandas as pd
 
@@ -20,18 +19,29 @@ from src.utils.env_handle import get_env_var
 def get_df_from_bucket(settings, bucket_uri):
     files_in_bucket = settings.get('awsDf').get_s3_bucket_obj_list(bucket_uri)
 
-    df = None
+    procs = []
+
+    max_process_number = get_env_var('MAX_THREAD', 'int')
+
+    manager = Manager()
+
+    frames = manager.list()
 
     for idx, file_uri in enumerate(files_in_bucket):
-        tmp_df = clean_df(file_uri, settings.get('awsDf'))
+        if len(procs) == max_process_number:
+            for proc in procs:
+                proc.join()
 
-        print(f'Concat {tmp_df.shape}')
+            procs = []
 
-        if df is None:
-            df = tmp_df
-        else:
-            df = pd.concat([df, tmp_df], ignore_index=True)
+        p = Process(target=clean_df, args=(frames, file_uri, settings.get('awsDf'),))
 
-    print(f'{df.shape}')
+        p.start()
 
-    return df
+        procs.append(p)
+
+    if procs:
+        for proc in procs:
+            proc.join()
+
+    return pd.concat(frames, ignore_index=True)

@@ -27,15 +27,5 @@ def main():
 
     launch(settings, args)
 
-    #
-    # if args.get('bucketUri') is not None:
-    #     loop(settings, args.get('bucketUri'))
-    #
-    # if args.get('fileUri') is not None:
-    #     thread_process(
-    #         settings, args.get('fileUri'), job_id=args.get('jobId') if settings.get('mode') == "merging" else None
-    #     )
-
-
 if __name__ == "__main__":
     main()

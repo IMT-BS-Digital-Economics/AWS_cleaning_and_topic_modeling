@@ -68,13 +68,8 @@ def format_db(df):
 
 
 def clean_df(frames, file_uri, aws_df):
-    print(f'Downloading {file_uri}')
-
     df = aws_df.download_df_from_s3(file_uri)
     format_db(df)
-
-    print(df.columns)
-    print(f'Cleaning {file_uri}')
 
     frames.append(df)
 
@@ -83,8 +78,6 @@ def clean_df(frames, file_uri, aws_df):
 
 def clean_process(df, aws_df, process_name, start_time, column):
     upload_time = time()
-
-    upload_response = None
 
     try:
         upload_response = aws_df.upload_to_s3(df, get_env_var("AWS_TMP_BUCKET", "str"), f'cleaned_{process_name}')
@@ -98,5 +91,3 @@ def clean_process(df, aws_df, process_name, start_time, column):
 
     except Exception as e:
         write_thread_logs(process_name, f"Exception raised during upload of cleaned_{process_name}: {format_exc()}")
-
-    return upload_response['paths'][0]
